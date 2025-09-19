@@ -1,0 +1,51 @@
+@@ .. @@
+     </div>
+
++    <script type="module">
++        import { trackPageVisit } from './src/supabaseClient.js';
++        import authManager from './src/auth.js';
++
++        // Track page visit when the page loads
++        document.addEventListener('DOMContentLoaded', async () => {
++            await trackPageVisit('/');
++            
++            // Check if user is logged in and approved
++            const user = await authManager.getCurrentUser();
++            if (user) {
++                // Add a small indicator that user is logged in
++                const header = document.querySelector('header');
++                if (header) {
++                    const loginIndicator = document.createElement('div');
++                    loginIndicator.className = 'text-sm text-slate-400 mt-2';
++                    loginIndicator.innerHTML = `
++                        Logged in as ${user.email} | 
++                        <a href="/admin.html" class="text-indigo-400 hover:text-indigo-300">Admin</a> | 
++                        <button onclick="authManager.signOut()" class="text-red-400 hover:text-red-300">Sign Out</button>
++                    `;
++                    header.appendChild(loginIndicator);
++                }
++            } else {
++                // Add login link for non-authenticated users
++                const header = document.querySelector('header');
++                if (header) {
++                    const loginLink = document.createElement('div');
++                    loginLink.className = 'text-sm text-slate-400 mt-2';
++                    loginLink.innerHTML = `
++                        <a href="/login.html" class="text-indigo-400 hover:text-indigo-300">Login / Sign Up</a>
++                    `;
++                    header.appendChild(loginLink);
++                }
++            }
++        });
++    </script>
++
+     <script>
+         // Get references to the DOM elements
+@@ .. @@
+         // Initialize the form on page load
+         updateFormForPlatform('linkedin');
+         setActiveOperatorButton('OR');
+         setActivePlatformButton(document.getElementById('linkedinBtn'));
+     </script>
+ </body>
+ </html>

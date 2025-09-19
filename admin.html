@@ -3,33 +3,496 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Booleanator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-<body class="p-4 sm:p-8 min-h-screen flex flex-col items-center">
-    <div class="container mx-auto p-4">
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-8 text-center">Admin Dashboard</h1>
-        <div id="adminContent" class="hidden">
-            <table id="usersTable" class="min-w-full divide-y divide-gray-700 rounded-xl overflow-hidden">
-                <thead class="bg-slate-700">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Name/Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-300 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTableBody" class="bg-slate-800 divide-y divide-gray-700">
-                    </tbody>
-            </table>
-            <div class="mt-8">
-                <h2 class="text-2xl font-bold text-white">Analytics</h2>
-                <div id="analyticsContainer" class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --card-bg-color: #1e293b;
+            --text-color: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .bg-white { background-color: var(--card-bg-color); }
+        .text-slate-800 { color: var(--text-color); }
+        .text-slate-500 { color: var(--text-secondary); }
+        .border-slate-300 { border-color: var(--border-color); }
+        .text-slate-700 { color: var(--text-color); }
+        .bg-slate-50 { background-color: #334155; }
+        .bg-slate-100 { background-color: #475569; }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-3xl shadow-2xl p-6 mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-4xl font-bold text-slate-800">Admin Dashboard</h1>
+                    <p class="text-slate-500 mt-2">Manage users and view analytics</p>
+                </div>
+                <div class="flex space-x-4">
+                    <button onclick="window.location.href='/index.html'" class="bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition">
+                        View Site
+                    </button>
+                    <button onclick="authManager.signOut()" class="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition">
+                        Sign Out
+                    </button>
+                </div>
             </div>
         </div>
-        <p id="authStatus" class="text-white text-center">Loading...</p>
+
+        <div id="adminContent" class="hidden">
+            <!-- Analytics Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-500 text-sm font-semibold">Total Users</p>
+                            <p id="totalUsers" class="text-3xl font-bold text-slate-800">-</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-500 text-sm font-semibold">Pending Approval</p>
+                            <p id="pendingUsers" class="text-3xl font-bold text-slate-800">-</p>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-500 text-sm font-semibold">Daily Active Users</p>
+                            <p id="dailyActiveUsers" class="text-3xl font-bold text-slate-800">-</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-500 text-sm font-semibold">Monthly Active Users</p>
+                            <p id="monthlyActiveUsers" class="text-3xl font-bold text-slate-800">-</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-full">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-3xl shadow-2xl p-6">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">User Registrations (Last 30 Days)</h3>
+                    <canvas id="registrationChart" width="400" height="200"></canvas>
+                </div>
+                
+                <div class="bg-white rounded-3xl shadow-2xl p-6">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">Daily Active Users (Last 7 Days)</h3>
+                    <canvas id="dauChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- User Management Table -->
+            <div class="bg-white rounded-3xl shadow-2xl p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold text-slate-800">User Management</h3>
+                    <div class="flex space-x-2">
+                        <button id="refreshUsers" class="bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition">
+                            Refresh
+                        </button>
+                        <select id="userFilter" class="px-4 py-2 border border-slate-300 rounded-xl text-slate-900">
+                            <option value="all">All Users</option>
+                            <option value="pending">Pending Approval</option>
+                            <option value="approved">Approved Users</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">User</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Last Login</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Login Count</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="bg-white divide-y divide-slate-200">
+                            <!-- Users will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingMessage" class="text-center text-slate-500 text-xl">
+            Loading admin dashboard...
+        </div>
+
+        <div id="accessDenied" class="hidden text-center">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl max-w-md mx-auto">
+                <strong>Access Denied</strong><br>
+                You don't have admin privileges to access this dashboard.
+                <br><br>
+                <button onclick="window.location.href='/index.html'" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                    Go to Main Site
+                </button>
+            </div>
+        </div>
     </div>
-    <script type="module" src="supabaseClient.js"></script>
-    <script type="module" src="admin.js"></script>
+
+    <script type="module">
+        import authManager from './src/auth.js';
+        import { supabase } from './src/supabaseClient.js';
+
+        let registrationChart, dauChart;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const adminContent = document.getElementById('adminContent');
+            const accessDenied = document.getElementById('accessDenied');
+
+            // Check if user is admin
+            const isAdmin = await authManager.isAdmin();
+            
+            if (isAdmin) {
+                loadingMessage.classList.add('hidden');
+                adminContent.classList.remove('hidden');
+                await initializeAdminDashboard();
+            } else {
+                loadingMessage.classList.add('hidden');
+                accessDenied.classList.remove('hidden');
+            }
+        });
+
+        async function initializeAdminDashboard() {
+            await Promise.all([
+                fetchAnalytics(),
+                fetchUsers(),
+                initializeCharts()
+            ]);
+
+            // Set up event listeners
+            document.getElementById('refreshUsers').addEventListener('click', fetchUsers);
+            document.getElementById('userFilter').addEventListener('change', fetchUsers);
+        }
+
+        async function fetchAnalytics() {
+            try {
+                const now = new Date();
+                const yesterday = new Date(now.getTime() - (24 * 60 * 60 * 1000)).toISOString();
+                const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString();
+
+                // Total users
+                const { count: totalUsers } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true });
+
+                // Pending users
+                const { count: pendingUsers } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('is_approved', false);
+
+                // Daily active users
+                const { count: dau } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('last_login', yesterday);
+
+                // Monthly active users
+                const { count: mau } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('last_login', thirtyDaysAgo);
+
+                // Update UI
+                document.getElementById('totalUsers').textContent = totalUsers || 0;
+                document.getElementById('pendingUsers').textContent = pendingUsers || 0;
+                document.getElementById('dailyActiveUsers').textContent = dau || 0;
+                document.getElementById('monthlyActiveUsers').textContent = mau || 0;
+
+            } catch (error) {
+                console.error('Error fetching analytics:', error);
+            }
+        }
+
+        async function fetchUsers() {
+            try {
+                const filter = document.getElementById('userFilter').value;
+                let query = supabase
+                    .from('profiles')
+                    .select('id, full_name, email, is_approved, last_login, login_count, created_at')
+                    .order('created_at', { ascending: false });
+
+                if (filter === 'pending') {
+                    query = query.eq('is_approved', false);
+                } else if (filter === 'approved') {
+                    query = query.eq('is_approved', true);
+                }
+
+                const { data: users, error } = await query;
+
+                if (error) throw error;
+
+                const tableBody = document.getElementById('usersTableBody');
+                tableBody.innerHTML = '';
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-slate-50 transition';
+                    
+                    const lastLogin = user.last_login ? 
+                        new Date(user.last_login).toLocaleDateString() : 'Never';
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10">
+                                    <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                        <span class="text-indigo-600 font-semibold text-sm">
+                                            ${user.full_name ? user.full_name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-slate-900">${user.full_name || 'No name'}</div>
+                                    <div class="text-sm text-slate-500">${user.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                user.is_approved 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                            }">
+                                ${user.is_approved ? 'Approved' : 'Pending'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900">${lastLogin}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900">${user.login_count || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            ${!user.is_approved ? `
+                                <button onclick="approveUser('${user.id}')" 
+                                        class="text-indigo-600 hover:text-indigo-900 mr-3 transition">
+                                    Approve
+                                </button>
+                            ` : ''}
+                            <button onclick="toggleUserStatus('${user.id}', ${user.is_approved})" 
+                                    class="text-${user.is_approved ? 'red' : 'green'}-600 hover:text-${user.is_approved ? 'red' : 'green'}-900 transition">
+                                ${user.is_approved ? 'Revoke' : 'Approve'}
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        }
+
+        async function initializeCharts() {
+            // Registration chart
+            const regCtx = document.getElementById('registrationChart').getContext('2d');
+            registrationChart = new Chart(regCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'New Registrations',
+                        data: [],
+                        borderColor: 'rgb(99, 102, 241)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // DAU chart
+            const dauCtx = document.getElementById('dauChart').getContext('2d');
+            dauChart = new Chart(dauCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Daily Active Users',
+                        data: [],
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        borderColor: 'rgb(34, 197, 94)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            await updateCharts();
+        }
+
+        async function updateCharts() {
+            try {
+                // Get registration data for last 30 days
+                const registrationData = await getRegistrationData();
+                registrationChart.data.labels = registrationData.labels;
+                registrationChart.data.datasets[0].data = registrationData.data;
+                registrationChart.update();
+
+                // Get DAU data for last 7 days
+                const dauData = await getDAUData();
+                dauChart.data.labels = dauData.labels;
+                dauChart.data.datasets[0].data = dauData.data;
+                dauChart.update();
+
+            } catch (error) {
+                console.error('Error updating charts:', error);
+            }
+        }
+
+        async function getRegistrationData() {
+            const labels = [];
+            const data = [];
+            
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                const nextDate = new Date(date);
+                nextDate.setDate(nextDate.getDate() + 1);
+                const nextDateStr = nextDate.toISOString().split('T')[0];
+                
+                const { count } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', dateStr)
+                    .lt('created_at', nextDateStr);
+                
+                labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                data.push(count || 0);
+            }
+            
+            return { labels, data };
+        }
+
+        async function getDAUData() {
+            const labels = [];
+            const data = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                const nextDate = new Date(date);
+                nextDate.setDate(nextDate.getDate() + 1);
+                const nextDateStr = nextDate.toISOString().split('T')[0];
+                
+                const { count } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('last_login', dateStr)
+                    .lt('last_login', nextDateStr);
+                
+                labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                data.push(count || 0);
+            }
+            
+            return { labels, data };
+        }
+
+        // Global functions for user management
+        window.approveUser = async (userId) => {
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ is_approved: true })
+                    .eq('id', userId);
+
+                if (error) throw error;
+
+                alert('User approved successfully!');
+                await Promise.all([fetchUsers(), fetchAnalytics()]);
+            } catch (error) {
+                alert('Error approving user: ' + error.message);
+            }
+        };
+
+        window.toggleUserStatus = async (userId, currentStatus) => {
+            try {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update({ is_approved: !currentStatus })
+                    .eq('id', userId);
+
+                if (error) throw error;
+
+                alert(`User ${!currentStatus ? 'approved' : 'access revoked'} successfully!`);
+                await Promise.all([fetchUsers(), fetchAnalytics()]);
+            } catch (error) {
+                alert('Error updating user status: ' + error.message);
+            }
+        };
+    </script>
 </body>
 </html>
