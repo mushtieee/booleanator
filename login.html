@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Booleanator</title>
+    <link rel="stylesheet" href="styles.css"> <script src="https://cdn.tailwindcss.com"></script> </head>
+<body class="dark-theme">
+    <div class="login-container">
+        <h2>Welcome to Booleanator</h2>
+        <form id="authForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit" id="signInButton">Sign In</button>
+            <button type="button" id="signUpButton">Sign Up</button>
+        </form>
+        <div id="socialLogins">
+            <p>Or sign in with:</p>
+            <button id="googleLoginButton">Google</button>
+        </div>
+        <p id="statusMessage"></p>
+    </div>
+
+    <script type="module" src="supabaseClient.js"></script>
+    <script type="module" src="auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booleanator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --card-bg-color: #1e293b;
+            --text-color: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --input-bg-color: #1e293b;
+            --keyword-bg-color: #1d4ed8;
+            --keyword-text-color: #e0f2fe;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            scroll-behavior: smooth;
+        }
+
+        .bg-white { background-color: var(--card-bg-color); }
+        .text-slate-800 { color: var(--text-color); }
+        .text-slate-500 { color: var(--text-secondary); }
+        .border-slate-300 { border-color: var(--border-color); }
+        .bg-slate-50 { background-color: var(--input-bg-color); }
+        .text-slate-700 { color: var(--text-color); }
+        .keyword-bubble {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--keyword-bg-color);
+            color: var(--keyword-text-color);
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .keyword-bubble-remove {
+            cursor: pointer;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            color: var(--keyword-text-color);
+        }
+        .keyword-bubble-remove:hover {
+            opacity: 1;
+        }
+
+        .focus-within\:ring-indigo-500:focus-within, .focus-within\:border-indigo-500:focus-within {
+            --tw-ring-color: #6366f1;
+            --tw-border-color: #6366f1;
+        }
+        .bg-slate-200 { background-color: var(--border-color) }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+        }
+        .collapsible-content.open {
+            max-height: 1000px;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 min-h-screen flex flex-col items-center">
+
+    <div class="w-full max-w-7xl my-8">
+
+        <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 space-y-8 flex flex-col">
+
+            <header class="text-center space-y-2 mb-6">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-800 leading-tight">
+                    Booleanator
+                </h1>
+                <p class="text-slate-500 text-lg sm:text-xl">
+                    Generate powerful search strings for a variety of platforms.
+                </p>
+            </header>
+
+            <div class="flex-1 flex flex-wrap items-end gap-4">
+
+                <div class="p-4 bg-slate-50 rounded-2xl flex-shrink-0">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                        Select a Platform
+                    </label>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button id="linkedinBtn" class="px-4 py-2 text-sm rounded-xl font-bold transition duration-200 bg-indigo-600 text-white shadow" data-site="linkedin">LinkedIn</button>
+                        <button id="githubBtn" class="px-4 py-2 text-sm rounded-xl font-bold border border-slate-300 text-slate-700 hover:bg-slate-100 transition duration-200" data-site="github">GitHub</button>
+                        <button id="stackoverflowBtn" class="px-4 py-2 text-sm rounded-xl font-bold border border-slate-300 text-slate-700 hover:bg-slate-100 transition duration-200" data-site="stackoverflow">Stack Overflow</button>
+                        <button id="dribbbleBtn" class="px-4 py-2 text-sm rounded-xl font-bold border border-slate-300 text-slate-700 hover:bg-slate-100 transition duration-200" data-site="dribbble">Dribbble</button>
+                        <input id="customSiteInput" type="text" placeholder="Custom Site" class="px-4 py-2 text-sm rounded-xl font-semibold border border-slate-300 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 w-32">
+                    </div>
+                </div>
+
+                <div id="jobTitleDiv" class="flex-shrink-0 w-64">
+                    <label for="jobTitle" class="block text-sm font-bold text-slate-700 mb-1">
+                        Job Title(s)
+                    </label>
+                    <input type="text" id="jobTitle" class="mt-1 block w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 placeholder-slate-400 text-slate-900" placeholder='e.g., "Software Engineer"'>
+                </div>
+
+                <div id="seniorityDiv" class="flex-shrink-0 w-48">
+                    <label for="seniority" class="block text-sm font-bold text-slate-700 mb-1">
+                        Seniority
+                    </label>
+                    <select id="seniority" class="mt-1 block w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 text-slate-900">
+                        <option value="" selected>Any Seniority</option>
+                        <option value="intern">Intern / Entry-level</option>
+                        <option value="junior">Junior / Associate</option>
+                        <option value="senior">Senior</option>
+                        <option value="lead">Lead / Principal</option>
+                        <option value="manager">Manager / Team Lead</option>
+                        <option value="director">Director / VP</option>
+                    </select>
+                </div>
+
+                <div id="diversityDiv" class="p-4 bg-slate-50 rounded-2xl flex-shrink-0">
+                    <label class="block text-sm font-bold text-slate-900 mb-2">
+                        Diversity Focus
+                    </label>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="womenCheck" data-terms="women in tech,women engineers,female software engineer,Society of Women Engineers,Girls Who Code,AnitaB.org" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out rounded-lg">
+                            <label for="womenCheck" class="text-sm text-slate-900">Women</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="veteranCheck" data-terms="military veteran,US veteran,army veteran,navy veteran,air force veteran" class="form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out rounded-lg">
+                            <label for="veteranCheck" class="text-sm text-slate-900">Veterans</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-shrink-0 w-64">
+                    <div class="flex items-center space-x-2">
+                        <label for="keywordInput" class="block text-sm font-bold text-slate-700">
+                            Keywords/Skills
+                        </label>
+                        <div class="flex space-x-1 mt-1 mb-2">
+                            <button id="andOperator" class="px-2 py-0.5 text-xs rounded-full font-bold border border-slate-300 text-slate-700 transition" data-operator="AND">AND</button>
+                            <button id="orOperator" class="px-2 py-0.5 text-xs rounded-full font-bold transition duration-200 bg-indigo-600 text-white shadow" data-operator="OR">OR</button>
+                        </div>
+                    </div>
+                    <div id="keywordContainer" class="flex flex-wrap items-center w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus-within:ring-indigo-500 focus-within:border-indigo-500 transition duration-150 min-h-[4rem]">
+                        <input type="text" id="keywordInput" class="flex-1 min-w-[50px] bg-transparent outline-none border-none placeholder-slate-400 text-slate-900" placeholder="e.g., Python, Java">
+                    </div>
+                </div>
+
+                <div id="companyDiv" class="flex-shrink-0 w-48">
+                    <label for="company" class="block text-sm font-bold text-slate-700 mb-1">
+                        Company
+                    </label>
+                    <input type="text" id="company" class="mt-1 block w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 placeholder-slate-400 text-slate-900" placeholder='e.g., "Google"'>
+                </div>
+
+                <div id="locationDiv" class="flex-shrink-0 w-48">
+                    <label for="location" class="block text-sm font-bold text-slate-700 mb-1">
+                        City/Region
+                    </label>
+                    <input type="text" id="location" class="mt-1 block w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 placeholder-slate-400 text-slate-900" placeholder='e.g., "Mumbai"'>
+                </div>
+
+                <div id="countryDiv" class="flex-shrink-0 w-48">
+                    <label for="country" class="block text-sm font-bold text-slate-700 mb-1">
+                        Country
+                    </label>
+                    <select id="country" class="mt-1 block w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 text-slate-900">
+                        <option value="in" selected>India</option>
+                        <option value="uk">United Kingdom</option>
+                        <option value="ae">United Arab Emirates</option>
+                        <option value="ca">Canada</option>
+                        <option value="de">Germany</option>
+                        <option value="sg">Singapore</option>
+                    </select>
+                </div>
+
+                <div class="flex-shrink-0 w-64">
+                    <label for="excludeKeywords" class="block text-sm font-bold text-slate-700 mb-1">
+                        Exclude Keywords
+                    </label>
+                    <input type="text" id="excludeKeywords" class="mt-1 block w-full px-4 py-3 border border-slate-300 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 placeholder-slate-400 text-slate-900" placeholder='e.g., intern, "looking for a job"'>
+                </div>
+
+                <div class="mt-8 flex gap-4 w-full justify-center">
+                    <button id="clearButton" class="w-1/3 bg-slate-200 text-slate-700 font-bold py-4 px-6 rounded-xl shadow hover:bg-slate-300 transition duration-300 ease-in-out transform">
+                        Clear Form
+                    </button>
+                    <button id="howToButton" class="w-1/3 bg-slate-200 text-slate-700 font-bold py-4 px-6 rounded-xl shadow hover:bg-slate-300 transition duration-300 ease-in-out transform">
+                        How to Use
+                    </button>
+                    <button id="generateButton" class="w-1/3 bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:bg-indigo-700 transition duration-300 ease-in-out transform hover:scale-105">
+                        Generate Query
+                    </button>
+                </div>
+
+            </div>
+            <div id="statusMessage" class="p-4 rounded-xl text-center text-sm font-medium hidden mt-4"></div>
+        </div>
+
+        <div id="howToGuide" class="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 mt-8 hidden">
+            <header class="text-center space-y-2 mb-6">
+                <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-800 leading-tight">
+                    How to Use Booleanator
+                </h2>
+                <p class="text-slate-500 text-lg sm:text-xl">
+                    A quick guide to getting the best results.
+                </p>
+            </header>
+            <div class="space-y-6 text-slate-700 leading-relaxed border-t pt-8 border-slate-200">
+                <h3 class="text-xl font-bold text-slate-800">Select a Platform</h3>
+                <p>Choose a website like **LinkedIn**, **GitHub**, or others to tailor your search. The form will dynamically update to provide relevant hints for your selected platform.</p>
+                <h3 class="text-xl font-bold text-slate-800">Job Title(s)</h3>
+                <p>Enter one or more job titles. Separate them with a comma (,) to search for any of those titles (e.g., `Software Engineer, Developer`).</p>
+                <h3 class="text-xl font-bold text-slate-800">Seniority</h3>
+                <p>Use the dropdown to add a specific seniority level to your job title search. This will narrow your results down to a more targeted pool.</p>
+                <h3 class="text-xl font-bold text-slate-800">Keywords/Skills</h3>
+                <p>Type in skills and press **Enter** or **comma (,)** after each one to create a bubble. Use the **AND/OR** buttons to select how these skills should be combined in your search.</p>
+                <h3 class="text-xl font-bold text-slate-800">Company, City/Region</h3>
+                <p>Similar to the Job Title, you can enter multiple companies or locations separated by a comma to find candidates from any of those options.</p>
+                <h3 class="text-xl font-bold text-slate-800">Exclude Keywords</h3>
+                <p>Use this field to remove unwanted profiles. Enter terms you want to exclude, such as `intern` or `"looking for a job"`, and the search will filter them out.</p>
+                <h3 class="text-xl font-bold text-slate-800">Generate Query</h3>
+                <p>Click the button to see your generated search string, which you can then copy or open directly in Google.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8 mt-8">
+            <div id="queryOutput" class="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 space-y-4 flex-1 hidden">
+                <h3 class="text-2xl font-bold text-slate-800 text-center">Your Search Query</h3>
+                <code id="generatedQueryText" class="block bg-slate-100 p-4 rounded-xl text-slate-700 overflow-x-auto text-sm"></code>
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-4">
+                    <button id="copyButton" class="w-full sm:w-1/2 bg-slate-500 text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-600 transition">
+                        Copy Query
+                    </button>
+                    <button id="openGoogleButton" class="w-full sm:w-1/2 bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 transition">
+                        Open in Google
+                    </button>
+                </div>
+            </div>
+
+            <div id="how-to-use" class="bg-white rounded-3xl shadow-2xl p-6 sm:p-10 space-y-8 flex-1">
+                <header class="text-center space-y-2">
+                    <h2 class="text-4xl sm:text-5xl font-extrabold text-slate-800 leading-tight">
+                        About Booleanator.com
+                    </h2>
+                    <p class="text-slate-500 text-lg sm:text-xl">
+                        The story behind the tool that simplifies talent sourcing.
+                    </p>
+                </header>
+
+                <div class="space-y-6 text-slate-700 leading-relaxed border-t pt-8 border-slate-200">
+                    <h3 class="text-2xl font-bold text-slate-800">The Genesis of an Idea</h3>
+                    <p>
+                        As a sourcer by heart, I've always been driven by a relentless curiosity to find better, more efficient ways to unearth talent. The world of recruiting often feels like searching for a needle in a haystack, and I knew there had to be a smarter way to navigate the vast digital landscape.
+                    </p>
+                    <p>
+                        The concept for **Booleanator.com** was born out of countless hours spent manually crafting complex search queries. I envisioned a tool that could automate this process, empowering recruiters and sourcers everywhere. The goal was simple: to transform a tedious, time-consuming task into a seamless and intuitive experience.
+                    </p>
+
+                    <h3 class="text-2xl font-bold text-slate-800">Built for the Community</h3>
+                    <p>
+                        This isn't just a tool; it's a contribution to the sourcing community that has given me so much. I wanted to create something that would not only solve a personal pain point but also benefit my peers. Booleanator.com is designed to be a collaborative platform, a resource that grows with the needs of its users.
+                    </p>
+                    <p>
+                        My mission is to simplify the art of sourcing, making it more accessible and powerful for everyone, from seasoned experts to those just starting their journey.
+                    </p>
+
+                    <h3 class="text-2xl font-bold text-slate-800">About Me</h3>
+                    <p>
+                        I'm Mustafa Kesarya, a passionate sourcer with a love for technology and problem-solving. My journey in the world of talent acquisition has been incredibly rewarding, and I'm thrilled to share this tool with you.
+                    </p>
+                    <p>
+                        You can connect with me on <a href="https://www.linkedin.com/in/mustafakesarya/" target="_blank" class="text-indigo-600 hover:underline font-semibold">LinkedIn</a>. I'm always open to feedback, ideas, and connecting with fellow professionals.
+                    </p>
+                    <p>
+                        Please DM me at <a href="https://superdm.me/mustafa" target="_blank" class="text-indigo-600 hover:underline font-semibold">superdm.me/mustafa</a> to get in touch.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full max-w-7xl my-8 text-center">
+        <h3 class="text-slate-500 text-lg mb-4">Like this tool? Share with your colleagues.</h3>
+        <div class="flex justify-center space-x-4">
+            <button id="shareLinkedin" class="bg-blue-700 text-white font-bold py-2 px-4 rounded-xl flex items-center space-x-2 hover:bg-blue-800 transition">
+                <span>🔗</span><span>Share</span>
+            </button>
+            <button id="shareX" class="bg-gray-800 text-white font-bold py-2 px-4 rounded-xl flex items-center space-x-2 hover:bg-gray-900 transition">
+                <span>🐦</span><span>Post</span>
+            </button>
+            <button id="shareFacebook" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-xl flex items-center space-x-2 hover:bg-blue-700 transition">
+                <span>👍</span><span>Share</span>
+            </button>
+            <button id="shareEmail" class="bg-slate-500 text-white font-bold py-2 px-4 rounded-xl flex items-center space-x-2 hover:bg-slate-600 transition">
+                <span>📧</span><span>Email</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Get references to the DOM elements
+        const htmlElement = document.documentElement;
+        const clearButton = document.getElementById('clearButton');
+        const howToButton = document.getElementById('howToButton');
+        const howToGuide = document.getElementById('howToGuide');
+
+        // Get references to all input fields and selects
+        const formFields = document.querySelectorAll('#jobTitle, #seniority, #company, #location, #country, #excludeKeywords, #keywordInput');
+
+        const jobTitleInput = document.getElementById('jobTitle');
+        const companyInput = document.getElementById('company');
+        const countrySelect = document.getElementById('country');
+        const locationInput = document.getElementById('location');
+        const generateButton = document.getElementById('generateButton');
+        const statusMessage = document.getElementById('statusMessage');
+        const excludeKeywordsInput = document.getElementById('excludeKeywords');
+        const senioritySelect = document.getElementById('seniority');
+
+        const websiteButtons = document.querySelectorAll('#linkedinBtn, #githubBtn, #stackoverflowBtn, #dribbbleBtn');
+        const customSiteInput = document.getElementById('customSiteInput');
+
+        const jobTitleDiv = document.getElementById('jobTitleDiv');
+        const seniorityDiv = document.getElementById('seniorityDiv');
+        const companyDiv = document.getElementById('companyDiv');
+        const countryDiv = document.getElementById('countryDiv');
+        const locationDiv = document.getElementById('locationDiv');
+        const diversityDiv = document.getElementById('diversityDiv');
+
+        const andOperatorButton = document.getElementById('andOperator');
+        const orOperatorButton = document.getElementById('orOperator');
+        let keywordOperator = 'OR';
+
+        const keywordInput = document.getElementById('keywordInput');
+        const keywordContainer = document.getElementById('keywordContainer');
+        let keywords = [];
+
+        const queryOutputSection = document.getElementById('queryOutput');
+        const generatedQueryText = document.getElementById('generatedQueryText');
+        const copyButton = document.getElementById('copyButton');
+        const openGoogleButton = document.getElementById('openGoogleButton');
+        
+        const shareLinkedinBtn = document.getElementById('shareLinkedin');
+        const shareXBtn = document.getElementById('shareX');
+        const shareFacebookBtn = document.getElementById('shareFacebook');
+        const shareEmailBtn = document.getElementById('shareEmail');
+
+        let currentSite = 'linkedin';
+
+        // Function to handle the active state of the platform buttons
+        function setActivePlatformButton(button) {
+            websiteButtons.forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+                btn.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-300');
+            });
+            if (button) {
+                button.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-300');
+                button.classList.add('bg-indigo-600', 'text-white', 'shadow');
+            }
+        }
+
+        // Function to handle the active state of the boolean operator buttons
+        function setActiveOperatorButton(operator) {
+            andOperatorButton.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+            orOperatorButton.classList.remove('bg-indigo-600', 'text-white', 'shadow');
+            andOperatorButton.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-300');
+            orOperatorButton.classList.add('bg-white', 'text-slate-700', 'border', 'border-slate-300');
+
+            if (operator === 'AND') {
+                andOperatorButton.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-300');
+                andOperatorButton.classList.add('bg-indigo-600', 'text-white', 'shadow');
+            } else {
+                orOperatorButton.classList.remove('bg-white', 'text-slate-700', 'border', 'border-slate-300');
+                orOperatorButton.classList.add('bg-indigo-600', 'text-white', 'shadow');
+            }
+            keywordOperator = operator;
+        }
+
+        // Function to create a keyword bubble
+        function createKeywordBubble(text) {
+            const bubble = document.createElement('div');
+            bubble.className = 'keyword-bubble';
+            bubble.textContent = text;
+
+            const removeBtn = document.createElement('span');
+            removeBtn.className = 'keyword-bubble-remove';
+            removeBtn.textContent = '×';
+            removeBtn.onclick = () => {
+                bubble.remove();
+                keywords = keywords.filter(k => k !== text);
+                keywordInput.focus();
+            };
+
+            bubble.appendChild(removeBtn);
+            keywordContainer.insertBefore(bubble, keywordInput);
+        }
+
+        // Function to format the query part with boolean logic
+        function formatBooleanQuery(inputString, operator = 'OR', isKeywords = false) {
+            let terms = [];
+            if (isKeywords) {
+                terms = keywords;
+            } else {
+                terms = inputString.split(/,| OR /i).map(term => term.trim()).filter(term => term !== '');
+            }
+
+            if (terms.length === 0) {
+                return '';
+            }
+            if (terms.length === 1) {
+                return `"${terms[0]}"`;
+            }
+
+            const quotedTerms = terms.map(term => `"${term}"`).join(` ${operator} `);
+            return `(${quotedTerms})`;
+        }
+
+        // Function to format negative keywords for exclusion
+        function formatNegativeQuery(inputString) {
+            const terms = inputString.split(/,| /).map(term => term.trim()).filter(term => term !== '');
+            if (terms.length === 0) {
+                return '';
+            }
+            return terms.map(term => `-"${term}"`).join(' ');
+        }
+
+        // Function to update the form's hints and visible fields based on the platform
+        function updateFormForPlatform(platform) {
+            const placeholderMap = {
+                linkedin: {
+                    jobTitle: 'e.g., "Software Engineer, Developer"',
+                    keywords: "e.g., Python, Java, 'machine learning'",
+                    company: 'e.g., "Google, Amazon"',
+                    location: 'e.g., "Mumbai, Bangalore"'
+                },
+                github: {
+                    jobTitle: '',
+                    keywords: "e.g., javascript, react, 'node.js'",
+                    company: 'e.g., "Google, Microsoft"',
+                    location: 'e.g., "San Francisco, Seattle"'
+                },
+                stackoverflow: {
+                    jobTitle: '',
+                    keywords: "e.g., python, pandas, 'machine learning'",
+                    company: 'e.g., "Amazon Web Services"',
+                    location: 'e.g., "Berlin, London"'
+                },
+                dribbble: {
+                    jobTitle: '',
+                    keywords: 'e.g., "Figma, Sketch, Adobe XD"',
+                    company: 'e.g., "Facebook, Airbnb"',
+                    location: 'e.g., "New York, Toronto"'
+                }
+            };
+
+            const selectedPlaceholders = placeholderMap[platform] || placeholderMap.linkedin;
+
+            jobTitleInput.placeholder = selectedPlaceholders.jobTitle;
+            keywordInput.placeholder = selectedPlaceholders.keywords;
+            companyInput.placeholder = selectedPlaceholders.company;
+            locationInput.placeholder = selectedPlaceholders.location;
+
+            if (platform === 'linkedin') {
+                jobTitleDiv.style.display = 'block';
+                seniorityDiv.style.display = 'block';
+                companyDiv.style.display = 'block';
+                countryDiv.style.display = 'block';
+                locationDiv.style.display = 'block';
+                diversityDiv.style.display = 'block';
+            } else {
+                jobTitleDiv.style.display = 'none';
+                seniorityDiv.style.display = 'none';
+                companyDiv.style.display = 'block';
+                countryDiv.style.display = 'none';
+                locationDiv.style.display = 'block';
+                diversityDiv.style.display = 'none';
+            }
+        }
+
+        // Function to construct the Google X-Ray search query
+        function generateSearchQuery() {
+            let siteQuery = '';
+            if (currentSite === 'linkedin') {
+                const countryCode = countrySelect.value;
+                siteQuery = `site:${countryCode}.linkedin.com/in -inurl:jobs -inurl:groups -inurl:company`;
+            } else if (currentSite === 'github') {
+                siteQuery = `site:github.com/ -"stars" -"issues" -"pulls" -inurl:tab -inurl:releases -inurl:wiki`;
+            } else if (currentSite === 'stackoverflow') {
+                siteQuery = `site:stackoverflow.com/users -"Keeping a low profile." -"0 * reputation"`;
+            } else if (currentSite === 'dribbble') {
+                siteQuery = `site:dribbble.com -inurl:(followers|type|members|following|jobs|designers|players|buckets|places|skills|projects|tags|search|stories|users|draftees|likes|lists) -intitle:(following|likes) -"Hire Us" ("Hire Me" OR "Elsewhere")`;
+            } else {
+                siteQuery = `site:${currentSite}`;
+            }
+
+            let query = siteQuery;
+
+            // Job Title and Seniority logic (LinkedIn-specific)
+            if (currentSite === 'linkedin') {
+                const jobTitleQuery = formatBooleanQuery(jobTitleInput.value);
+                const seniorityValue = senioritySelect.value;
+
+                if (jobTitleQuery && seniorityValue) {
+                    query += ` ${jobTitleQuery} AND "${seniorityValue}"`;
+                } else if (jobTitleQuery) {
+                    query += ` ${jobTitleQuery}`;
+                } else if (seniorityValue) {
+                    query += ` "${seniorityValue}"`;
+                }
+            }
+
+            // --- DIVERSITY SEARCH LOGIC ---
+            if (currentSite === 'linkedin') {
+                const diversityTerms = [];
+                const diversityCheckboxes = document.querySelectorAll('#diversityDiv input[type="checkbox"]:checked');
+                diversityCheckboxes.forEach(checkbox => {
+                    const terms = checkbox.dataset.terms.split(',').map(term => term.trim());
+                    if (terms.length > 0) {
+                        const formattedTerms = terms.map(term => `"${term}"`).join(' OR ');
+                        diversityTerms.push(formattedTerms);
+                    }
+                });
+
+                if (diversityTerms.length > 0) {
+                    const diversityQuery = `(${diversityTerms.join(' OR ')})`;
+                    query += ` AND ${diversityQuery}`;
+                }
+            }
+            // --- END DIVERSITY SEARCH LOGIC ---
+
+            // Keywords logic
+            const keywordsQuery = formatBooleanQuery('', keywordOperator, true);
+            if (keywordsQuery) {
+                query += ` ${keywordsQuery}`;
+            }
+
+            // Company logic
+            const companyQuery = formatBooleanQuery(companyInput.value);
+            if (companyQuery) {
+                query += ` ${companyQuery}`;
+            }
+
+            // Location logic
+            const locationQuery = formatBooleanQuery(locationInput.value);
+            if (locationQuery) {
+                query += ` ${locationQuery}`;
+            }
+
+            // Negative keywords logic
+            const excludeQuery = formatNegativeQuery(excludeKeywordsInput.value);
+            if (excludeQuery) {
+                query += ` ${excludeQuery}`;
+            }
+
+            return query.trim();
+        }
+        
+        function sharePage(platform) {
+            const pageUrl = encodeURIComponent(window.location.href);
+            const pageTitle = encodeURIComponent('Booleanator: The Ultimate Boolean Search Query Generator');
+            const shareText = encodeURIComponent('I just used Booleanator.com to generate a powerful search query! It’s a great tool for simplifying talent sourcing. Check it out:');
+            let shareUrl = '';
+
+            switch (platform) {
+                case 'linkedin':
+                    shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
+                    break;
+                case 'x':
+                    shareUrl = `https://twitter.com/intent/tweet?text=${shareText}&url=${pageUrl}`;
+                    break;
+                case 'facebook':
+                    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+                    break;
+                case 'email':
+                    shareUrl = `mailto:?subject=${pageTitle}&body=${shareText}%0A%0A${pageUrl}`;
+                    break;
+            }
+
+            if (shareUrl) {
+                window.open(shareUrl, '_blank');
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // Clear Form Button
+        clearButton.addEventListener('click', () => {
+            formFields.forEach(field => {
+                field.value = '';
+            });
+            keywords = [];
+            keywordContainer.querySelectorAll('.keyword-bubble').forEach(bubble => bubble.remove());
+            senioritySelect.value = '';
+            countrySelect.value = 'in';
+            queryOutputSection.classList.add('hidden');
+            statusMessage.classList.add('hidden');
+
+            // Clear diversity checkboxes
+            document.querySelectorAll('#diversityDiv input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // Re-initialize default states
+            currentSite = 'linkedin';
+            setActivePlatformButton(document.getElementById('linkedinBtn'));
+            updateFormForPlatform(currentSite);
+            setActiveOperatorButton('OR');
+        });
+
+        howToButton.addEventListener('click', () => {
+            howToGuide.classList.toggle('hidden');
+            if (!howToGuide.classList.contains('hidden')) {
+                howToGuide.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        andOperatorButton.addEventListener('click', () => setActiveOperatorButton('AND'));
+        orOperatorButton.addEventListener('click', () => setActiveOperatorButton('OR'));
+
+        keywordInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                const text = keywordInput.value.trim();
+                if (text && !keywords.includes(text)) {
+                    keywords.push(text);
+                    createKeywordBubble(text);
+                    keywordInput.value = '';
+                }
+            }
+        });
+
+        websiteButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setActivePlatformButton(button);
+                currentSite = button.dataset.site;
+                customSiteInput.value = '';
+                updateFormForPlatform(currentSite);
+            });
+        });
+
+        customSiteInput.addEventListener('input', () => {
+            if (customSiteInput.value.trim() !== '') {
+                setActivePlatformButton(null);
+                currentSite = customSiteInput.value;
+                updateFormForPlatform(currentSite);
+            }
+        });
+
+        generateButton.addEventListener('click', () => {
+            const searchQuery = generateSearchQuery();
+
+            if (searchQuery.length > 50) {
+                generatedQueryText.textContent = searchQuery;
+                queryOutputSection.classList.remove('hidden');
+
+                statusMessage.textContent = 'Query generated successfully!';
+                statusMessage.className = 'p-4 rounded-xl text-center text-sm font-medium bg-green-100 text-green-700 block';
+
+                document.getElementById('queryOutput').scrollIntoView({ behavior: 'smooth' });
+            } else {
+                queryOutputSection.classList.add('hidden');
+                statusMessage.textContent = "Please enter more details to create a meaningful search query.";
+                statusMessage.className = 'p-4 rounded-xl text-center text-sm font-medium bg-red-100 text-red-700 block';
+            }
+        });
+
+        copyButton.addEventListener('click', () => {
+            const textToCopy = generatedQueryText.textContent;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                statusMessage.textContent = 'Query copied to clipboard!';
+                statusMessage.className = 'p-4 rounded-xl text-center text-sm font-medium bg-green-100 text-green-700 block';
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                statusMessage.textContent = 'Failed to copy query.';
+                statusMessage.className = 'p-4 rounded-xl text-center text-sm font-medium bg-red-100 text-red-700 block';
+            });
+        });
+
+        openGoogleButton.addEventListener('click', () => {
+            const searchQuery = generatedQueryText.textContent;
+            const encodedQuery = encodeURIComponent(searchQuery);
+            const googleSearchUrl = `https://www.google.com/search?q=${encodedQuery}`;
+            window.open(googleSearchUrl, '_blank');
+        });
+
+        // Event listeners for social share buttons
+        shareLinkedinBtn.addEventListener('click', () => sharePage('linkedin'));
+        shareXBtn.addEventListener('click', () => sharePage('x'));
+        shareFacebookBtn.addEventListener('click', () => sharePage('facebook'));
+        shareEmailBtn.addEventListener('click', () => sharePage('email'));
+
+        // Initialize the form on page load
+        updateFormForPlatform('linkedin');
+        setActiveOperatorButton('OR');
+        setActivePlatformButton(document.getElementById('linkedinBtn'));
+    </script>
+</body>
+</html>
